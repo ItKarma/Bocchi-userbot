@@ -2,16 +2,21 @@
   "name": "auto-status-tg",
   "version": "1.0.0",
   "description": "Userbot that sets ping api telegram as a status.",
-  "main": "status.js",
+  "main": "bot.js",
   "scripts": {
-    "start": "node status.js"
+    "start": "node bot.js"
   },
-  "keywords": [],
-  "author": "spelsinx",
+  "keywords": [
+    "userbot",
+    "bot-telegram"
+  ],
+  "author": "danzok",
   "license": "MIT",
   "dependencies": {
-    "telegram": "^2.11.5",
+    "dotenv": "^16.0.2",
     "input": "^1.0.1",
-    "ping": "^0.4.2"
+    "moment-timezone": "^0.5.37",
+    "ping": "^0.4.2",
+    "telegram": "^2.11.5"
   }
 }

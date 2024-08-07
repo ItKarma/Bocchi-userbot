@@ -1,41 +1,111 @@
-const { Api, TelegramClient } = require("telegram");
+const { Logger } = require("telegram");
 const { StringSession } = require("telegram/sessions");
+const { NewMessage } = require("telegram/events");
 const input = require("input");
-const ping = require ("ping");
-require('dotenv').config();
+const fs = require("fs");
+const simpleGit = require("simple-git");
+const { LogLevel } = require("telegram/extensions/Logger");
+const Message = require("./src/lib/Message.js");
+const {CreateClient } = require("./src/lib/createClient");
+const {  setSudo } = require("./config");
 
-const apiId = 7179733;
-const apiHash = process.env.API_HASH; 
-const stringSession = new StringSession(process.env.STRING_SESSION);
+const git = simpleGit();
+require("dotenv").config();
+
+const modules = [];
+
+function Module(moduleConfig, callback) {
+  modules.push({ ...moduleConfig, callback });
+}
+
+
+const stringSession = new StringSession(process.env.STRING_SESSION || "");
 
 (async () => {
-  try {
-    const client = new TelegramClient(stringSession, apiId, apiHash, {
-        connectionRetries: 5,
+  console.log("Bot is starting...");
+
+  const client = new CreateClient(stringSession, Number(process.env.API_ID), process.env.API_HASH, {
+    connectionRetries: 5,
+    baseLogger: new Logger(LogLevel.ERROR),
+  });
+
+  client.addEventHandler(async (event) => {
+    let test = new Message(client, event.message);
+    const message = event.message.message;
+    //console.log(message)
+    const sender = await event.message.getSender();
+    //console.log(sender)
+
+    if (message) {
+      for (const module of modules) {
+        if ((module.fromMe && sender.self) || !module.fromMe) {
+          console.log(module)
+          const regex = new RegExp(`^\\.\\s*${module.pattern}`);
+          const match = message.match(regex);
+          if (match) {
+            module.callback(test, match);
+          }
+        }
+      }
+    }
+    for (const module of modules) {
+      if (module.on && module.on == "message" && ((module.fromMe && sender.self) || !module.fromMe)) {
+        module.callback(test);
+      }
+    }
+  }, new NewMessage({}));
+  await client.start({
+    phoneNumber: async () => await input.text("number ?"),
+    password: async () => await input.text("password?"),
+    phoneCode: async () => await input.text("Code ?"),
+    onError: (err) => console.log(err),
+  });
+  if (process.env.STRING_SESSION == "") {
+    let a = client.session.save();
+    let file = await fs.readFileSync(".env", "utf8");
+    file += `\nSESSION=${a}`;
+    fs.writeFileSync(".env", file);
+  }
+  console.log("Bot is ready.");
+  const me = await client.getMe();
+  setSudo(me.id);
+  //require("./bot/index");
+  await client.sendMessage("me", { message: "Bot has been started.." });
+  var commits = await git.log(["main" + "..origin/" + "main"]);
+  var mss = "";
+  if (commits.total != 0) {
+    var changelog = "_Pending updates:_\n\n";
+    for (var i in commits.all) {
+      changelog += `${parseInt(i) + 1}• **${commits.all[i].message}**\n`;
+    }
+    changelog += `\n_Use ".update start" to start the update_`;
+    await client.sendMessage("me", { message: changelog });
+  }
+})();
+
+
+Module(
+  { pattern: "start", fromMe: true, desc: "Start command", use: "utility" },
+  async (m) => {
+    const sender = await m.message.getSender();
+    await m.client.sendMessage(sender, {
+      message: `Hi, your ID is ${m.message.senderId}`,
     });
-    await client.connect(); 
-    await client.start({
-        phoneNumber: async () => await input.text("Your number: "),
-        password: async () => await input.text("Your password (2FA): "),
-        phoneCode: async () => await input.text("Received code: "),
-        onError: (err) => console.log(err),
-    });
+  }
+);
 
-    console.log("Started!")
+module.exports = {
+  Module,
+  modules,
+};
 
-    const result = setInterval(async() => {
-        let resp = await ping.promise.probe('api.telegram.org')
-        let pings = resp.avg *2 / 1000;
-        let pingtext = `⏱ Request ping : ${pings} MS.`;
-        
-        client.invoke(
-            new Api.account.UpdateProfile({
-                // set the status
-                about: pingtext // text
-            })
-        )
-    },3000);
+const pluginFolder = "./src/plugins/";
+const files = fs.readdirSync(pluginFolder);
 
-}catch(e){
-  console.log(e)
-}})();
+files.forEach((file) => {
+  if (file.endsWith(".js")) {
+    console.log(file)
+    const filePath = pluginFolder + file;
+    require(filePath);
+  }
+});

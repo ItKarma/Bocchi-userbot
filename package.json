@@ -4,7 +4,8 @@
   "description": "Userbot that sets ping api telegram as a status.",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
   },
   "keywords": [
     "userbot",
@@ -17,6 +18,7 @@
     "input": "^1.0.1",
     "moment-timezone": "^0.5.37",
     "ping": "^0.4.2",
-    "telegram": "^2.11.5"
+    "simple-git": "^3.25.0",
+    "telegram": "^2.23.10"
   }
 }

@@ -18,7 +18,9 @@ Userbot that sets ping api telegram
 3. Afk ( incomplete )
 
 
+This project is open to ideas and changes.
 
+Support [@ItKarma](https://t.me/Im_karmah)
 
 
 

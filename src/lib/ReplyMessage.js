@@ -98,6 +98,10 @@ class ReplyMessage extends Base {
     return await this.client.sendMessage(this.jid, content, type, options);
   }
 
+  async editMessage(content, type, options) {
+    return await this.client.editMessage(this.jid, content, type, options);
+  }
+
   async sendTyping() {
     return await this.client.updatePresence(this.jid, Presence.composing);
   }

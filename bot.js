@@ -8,13 +8,13 @@ const { LogLevel } = require("telegram/extensions/Logger");
 const Message = require("./src/lib/Message.js");
 const {CreateClient } = require("./src/lib/createClient");
 const {  setSudo } = require("./config");
-
 const git = simpleGit();
 require("dotenv").config();
 
 const modules = [];
 
 function Module(moduleConfig, callback) {
+  console.log(callback)
   modules.push({ ...moduleConfig, callback });
 }
 
@@ -32,17 +32,20 @@ const stringSession = new StringSession(process.env.STRING_SESSION || "");
   client.addEventHandler(async (event) => {
     let test = new Message(client, event.message);
     const message = event.message.message;
-    //console.log(message)
+  //  console.log(message)
     const sender = await event.message.getSender();
-    //console.log(sender)
+   // console.log(sender)
+
+    
 
     if (message) {
       for (const module of modules) {
-        if ((module.fromMe && sender.self) || !module.fromMe) {
-          console.log(module)
+        if ((module.fromMe) || !module.fromMe) {
+          
           const regex = new RegExp(`^\\.\\s*${module.pattern}`);
           const match = message.match(regex);
           if (match) {
+            console.log(module)
             module.callback(test, match);
           }
         }
@@ -71,16 +74,7 @@ const stringSession = new StringSession(process.env.STRING_SESSION || "");
   setSudo(me.id);
   //require("./bot/index");
   await client.sendMessage("me", { message: "Bot has been started.." });
-  var commits = await git.log(["main" + "..origin/" + "main"]);
-  var mss = "";
-  if (commits.total != 0) {
-    var changelog = "_Pending updates:_\n\n";
-    for (var i in commits.all) {
-      changelog += `${parseInt(i) + 1}• **${commits.all[i].message}**\n`;
-    }
-    changelog += `\n_Use ".update start" to start the update_`;
-    await client.sendMessage("me", { message: changelog });
-  }
+
 })();
 
 
@@ -104,7 +98,7 @@ const files = fs.readdirSync(pluginFolder);
 
 files.forEach((file) => {
   if (file.endsWith(".js")) {
-    console.log(file)
+    //console.log(file)
     const filePath = pluginFolder + file;
     require(filePath);
   }

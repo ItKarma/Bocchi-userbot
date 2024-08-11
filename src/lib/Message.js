@@ -1,6 +1,9 @@
+const telegram = require('telegram');
 const Base = require('./Base.js');
 const fs = require("fs");
+
 class Message extends Base {
+
   constructor(client, data) {
     super(client);
     if (data) this._patch(data, client);
@@ -40,6 +43,7 @@ class Message extends Base {
     });
     return new Message(this.client, a);
   }
+
   async edit(options) {
     if (!options) throw new Error("options is required");
     try {
@@ -48,7 +52,8 @@ class Message extends Base {
         ...options,
       });
     } catch (error) {
-      throw new Error(error);
+      console.log(error)
+     new Error(error);
     }
   }
   async download(){

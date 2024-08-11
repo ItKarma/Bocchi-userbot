@@ -1,5 +1,5 @@
-# 🚀 Telegram auto-status User-bot on NodeJS.
-Userbot that sets ping api telegram as a status.
+# 🚀 Telegram User-bot on NodeJS.
+Userbot that sets ping api telegram
 
 
 ## Installation and Usage
